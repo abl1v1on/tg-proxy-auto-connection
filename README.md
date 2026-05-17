@@ -16,6 +16,7 @@ cd tg-proxy-auto-connection
 python3 -m venv .venv
 
 # pip
+source .venv/bin/activate
 pip install -r requirements.txt
 
 # uv
