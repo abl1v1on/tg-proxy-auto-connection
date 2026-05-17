@@ -1,5 +1,6 @@
 import re
 import time
+import json
 import subprocess
 from enum import Enum
 from pathlib import Path
@@ -9,46 +10,58 @@ from docker.errors import NotFound
 
 
 class MTProtoProxy:
+    _USER_CONFIG = Path(__file__).parent.parent / "config.json"
+
     class Color(str, Enum):
         RED = "\033[91m"
         BLUE = "\033[34m"
         GREEN = "\033[32m"
 
-    def __init__(
-        self, 
-        telegram_bin_path: Path, 
-        tg_ws_proxy_container_id: str,
-    ) -> None:
-        if not telegram_bin_path.exists():
-            self._show_msg(
-                "Invalid path to telegram bin file", 
-                self.Color.RED,
-            )
-            exit(1)
+    def __init__(self) -> None:
+        self.client = DockerClient()
 
-        self.tg_bin_path = telegram_bin_path
-        self.tg_ws_proxy_container_id = tg_ws_proxy_container_id
+        if not self._USER_CONFIG.exists():
+            container_id = input(
+                "Enter your tg_ws_proxy docker container id: "
+            )
+
+            try:
+                self.client.containers.get(container_id)
+            except NotFound:
+                self._show_msg(
+                    "Invalid tg_ws_proxy container id", 
+                    self.Color.RED,
+                )
+                exit(1)
+            
+            with open(self._USER_CONFIG, mode="w") as file:
+                data = {
+                    "container_id": container_id,
+                }
+                file.write(json.dumps(data))
+            
+            self._show_msg(
+                "Your container id will be saved in config.json "
+                "(you can change it later)", 
+                self.Color.BLUE,
+            )
+
+        else:
+            with open(self._USER_CONFIG, mode="r") as file:
+                data = json.loads(file.read())
+                container_id = data["container_id"]
+
+        self.container_id = container_id
 
     def connect(self) -> None:
-        client = DockerClient()
-        
-        try:
-            tg_ws_proxy_container = client.containers.get(
-                self.tg_ws_proxy_container_id
-            )
-        except NotFound:
-            self._show_msg(
-                "Invalid tg_ws_proxy container id", 
-                self.Color.RED,
-            )
-            exit(1)
-        
+        tg_ws_proxy_container = self.client.containers.get(self.container_id)        
         tg_ws_proxy_container.restart()
+        
         self._show_msg(
             "Waiting for your container to restart...", 
             self.Color.BLUE,
         )
-        time.sleep(2)
+        time.sleep(3)
 
         logs = tg_ws_proxy_container.logs(tail=20).decode()
         matches = re.findall(
