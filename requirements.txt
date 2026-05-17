@@ -1,20 +1,6 @@
-attrs==26.1.0
 certifi==2026.4.22
-cffi==2.0.0
-cryptography==48.0.0
-filelock==3.29.0
-libtorrent==2.0.12
-lit==22.1.3.dev0
-nftables==0.1
-packaging==26.2
-psutil==7.2.2
-pycparser==3.0
-pygdbmi==0.11.0.0
-PyGObject==3.56.2
-sentry-sdk==2.59.0
-smbus==1.1
-TBB @ file:///build/onetbb/src/build/python/python_build
+charset-normalizer==3.4.7
+docker==7.1.0
+idna==3.15
+requests==2.34.2
 urllib3==2.7.0
-uv==0.11.11
-VapourSynth==75
-wheel==0.47.0
